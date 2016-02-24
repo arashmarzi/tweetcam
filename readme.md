@@ -28,7 +28,7 @@ Rename `_config.cfg.skel` to `_config.cfg` and update the values.
 
 - `setup`
 	- `debug_mode` - This stops the script from actually tweeting but output on the command line
-	- `twitter_username` - The username of your twitter bot
+	- `twitter_username` - The username of your twitter bot (without leading @)
 - `options`
 	- `tweet_difference_limit` - Time (in minutes) for the cutoff for replying to tweets (e.g. if it is over this it won't reply)
 - `twitter_api` - Your keys for the API app
@@ -37,7 +37,7 @@ Rename `_config.cfg.skel` to `_config.cfg` and update the values.
 	- `photo` - for when the bot takes a picture
 	- `video` - for status with video
 	- `preperation` - the tweet which is sent before recording starts
-	- `late` - for when the tweet is more than tweet difference limit
+	- `empty` - for when the tweet contains no understandable hashtags
 
 #### Step 3: Run the bot
 
