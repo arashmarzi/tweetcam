@@ -92,3 +92,9 @@ And add this to the bottom
 ```
 
 This will run the service check script every 15 minutes - restarting the process if it's not running
+
+#### Step 6: Commands
+
+Using the two command hashtags, #snap and #rec, the Twitter bot will reply with a picture or video respectively.
+
+If a hashtag is not used then a random respond is made.
