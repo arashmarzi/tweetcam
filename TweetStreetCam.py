@@ -50,8 +50,11 @@ class GraffCam:
 
 	def GetMentions(self):
 		last_mention_id = self.config.get('tweets', 'last_mention_id')
-		mentions = self.api.request('statuses/mentions_timeline', {'since_id': last_mention_id}).json()
-        	mentions = sorted(mentions, key=lambda k:k['id'])
+		if last_mention_id == str(0):
+			mentions = self.api.request('statuses/mentions_timeline', {}).json()
+		else:
+			mentions = self.api.request('statuses/mentions_timeline', {'since_id': last_mention_id}).json()
+		mentions = sorted(mentions, key=lambda k:k['id'])
 		return mentions
 
 	def GetStream(self):
@@ -68,67 +71,67 @@ class GraffCam:
 
 		# Work out time difference of tweet & get tweet ID
 		last_mention_id = tweet['id']
-		tweet_time = datetime.datetime.strptime(tweet['created_at'],'%a %b %d %H:%M:%S +0000 %Y')
-		current_time = datetime.datetime.strptime(time.strftime('%Y-%m-%d %H:%M:%S'), "%Y-%m-%d %H:%M:%S")
-		time_tweet_difference = (current_time - tweet_time).seconds / 60
-
+		#tweet_time = datetime.datetime.strptime(tweet['created_at'],'%a %b %d %H:%M:%S +0000 %Y')
+		#current_time = datetime.datetime.strptime(time.strftime('%Y-%m-%d %H:%M:%S'), "%Y-%m-%d %H:%M:%S")
+		
 		# Make a user
 		self.user = tweet['user']
 
 		# If the username is not itself
 		if self.user['screen_name'] != self.config.get('setup', 'twitter_username'):
+                        #Initialise custom classes
+                        tweetcam = TweetCam(self._HOME_PATH, self.camera, script_tweetcam)
+                        ta = TA(self._HOME_PATH, self.api, script_ta)
 
-			# If it's bigger than config option - don't record
-			if int(time_tweet_difference) <= int(self.config.get('options', 'tweet_difference_limit')):
+                        # If the tweet contains a photo trigger hashtag
+                        if ta.is_photo(tweet):
+                                # Get a prerpation tweet text
+                                start_status = self.PickStatus('preperation')
+                                if self._DEBUG_MODE == 'False':
+                                        start_post = self.api.request('statuses/update', {'status': start_status, 'in_reply_to_status_id': tweet['id']})
+                                        time.sleep(5)
+                                else:
+                                        print 'Preperation tweet: %s' % (start_status)
 
-				# Get a prerpation tweet text
-				start_status = self.PickStatus('preperation')
+                                media = tweetcam.capture_photo(tweet)
+                                media_upload = ta.upload_image(media)
+                                status_pick = 'photo'
 
-				if self._DEBUG_MODE == 'False':
-					start_post = self.api.request('statuses/update', {'status': start_status, 'in_reply_to_status_id': tweet['id']})
-					time.sleep(5)
-				else:
-					print 'Preperation tweet: %s' % (start_status)
+                        elif ta.is_video(tweet):
+                                # Get a prerpation tweet text
+                                start_status = self.PickStatus('preperation')
+                                if self._DEBUG_MODE == 'False':
+                                        start_post = self.api.request('statuses/update', {'status': start_status, 'in_reply_to_status_id': tweet['id']})
+                                        time.sleep(5)
+                                else:
+                                        print 'Preperation tweet: %s' % (start_status)
 
-				#Initialise custom classes
-				tweetcam = TweetCam(self._HOME_PATH, self.camera, script_tweetcam)
-				ta = TA(self._HOME_PATH, self.api, script_ta)
+                                media = tweetcam.record_video(tweet)
+                                media_upload = ta.upload_video(media)
+                                status_pick = 'video'
 
-				# If the tweet contains a photo trigger hashtag
-				if ta.is_photo(tweet):
-					media = tweetcam.capture_photo(tweet)
-					media_upload = ta.upload_image(media)
-					status_pick = 'photo'
-				else:
-					media = tweetcam.record_video(tweet)
-					media_upload = ta.upload_video(media)
-					status_pick = 'video'
+                        else:
+                                status_pick = 'empty'
 
-				# Build the status and send
-				status = self.PickStatus(status_pick)
+                        # Build the status and send
+                        status = self.PickStatus(status_pick)
 
-				if self._DEBUG_MODE == 'False':
-					if media_upload.status_code > 199 or media_upload.status_code < 300:
-						post = self.api.request('statuses/update', {'status': status, 'in_reply_to_status_id': tweet['id'], 'media_ids': media_upload.json()['media_id']})
-						if post.status_code > 199 or post.status_code < 300:
-							os.remove(media)
-				else:
-					print 'Original tweet: %s' % (tweet['text'])
-					print 'Status: %s [media: %s] ' % (status, media)
-			else:
+                        if status_pick == 'photo' or status_pick == 'video':
+                                if self._DEBUG_MODE == 'False':
+                                        if media_upload.status_code > 199 or media_upload.status_code < 300:
+                                                post = self.api.request('statuses/update', {'status': status, 'in_reply_to_status_id': tweet['id'], 'media_ids': media_upload.json()['media_id']})
+                                                if post.status_code > 199 or post.status_code < 300:
+                                                        os.remove(media)
+                        elif status_pick == 'empty':
+                                post = self.api.request('statuses/update', {'status': status, 'in_reply_to_status_id': tweet['id']})
+                                
+                        else:
+                                print 'Original tweet: %s' % (tweet['text'])
+                                print 'Status: %s [media: %s] ' % (status, media)
 
-				# Prepare the late text
-				late_status = self.PickStatus('late')
+                        # Update the last ID
+                        if self._DEBUG_MODE == 'False':
+                                self.config.set('tweets', 'last_mention_id', last_mention_id)
+                                with open(self._HOME_PATH + '_config.cfg', 'w') as f:
+                                        self.config.write(f)
 
-				if self._DEBUG_MODE == 'False':
-					late_post = self.api.request('statuses/update', {'status': late_status, 'in_reply_to_status_id': tweet['id']})
-				else:
-					print 'Tweet was late (%s minutes): %s' % (time_tweet_difference, late_status)
-
-			# Update the last ID
-			if self._DEBUG_MODE == 'False':
-				self.config.set('tweets', 'last_mention_id', last_mention_id)
-				with open(self._HOME_PATH + '_config.cfg', 'w') as f:
-					self.config.write(f)
-		else:
-			print 'Tweet by Graffcam, not actioning anything'

@@ -3,6 +3,7 @@ import sys
 
 class TA():
 	_PHOTO_HASHTAGS = ['snap']
+        _VIDEO_HASHTAGS = ['rec']
 
 	def __init__(self, home_path, api, logging):
 		self.api = api
@@ -20,11 +21,20 @@ class TA():
 		e = tweet['entities']
 		photo = False
 		if e['hashtags']:
-			for hashtag in e['hashtags']:
+                        for hashtag in e['hashtags']:
 				if any(hashtag['text'] in s for s in self._PHOTO_HASHTAGS):
 					photo = True
 
 		return photo
+
+        def is_video(self, tweet):
+                e = tweet['entities']
+                video = False
+                if e['hashtags']:
+                        for hashtag in e['hashtags']:
+                                if any(hashtag['text'] in s for s in self._VIDEO_HASHTAGS):
+                                        video = True
+                return video
 
 	def upload_image(self, filename):
 		# Upload a file
@@ -33,7 +43,7 @@ class TA():
 
 		self.logging.info('Uploading picture')
 		request = self.api.request('media/upload', None, {'media': data})
-		self.logging.info('Picture request: ' + request.json())
+		#self.logging.info('Picture request: ' + str(request.json()))
 		return request
 
 	def upload_video(self, filename):

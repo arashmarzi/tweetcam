@@ -1,21 +1,22 @@
 [setup]
 debug_mode = False
-twitter_username = 
+twitter_username =
 
 [options]
 tweet_difference_limit = 3
 
 [twitter_api]
-consumer_key =
-consumer_secret =
-access_token_key =
-access_token_secret =
+consumer_key = 
+consumer_secret = 
+access_token_key = 
+access_token_secret = 
 
 [tweets]
 last_mention_id = 0
 
 [tweet_text]
-preperation = ["[[user]] - get ready, filming will begin in 5 seconds!", "[[user]] I hope you're ready to be filmed in 5 seconds"]
-photo = ["Looking good [[user]]!", "Very nice shoes [[user]]!"]
-video = ["Here is your #graffcam short [[user]]", "Enjoy your film [[user]]"]
-late = ["Sorry [[user]] I was busy and didn't see your tweet - try again?"]
+preperation = ["[[user]] - get ready, deploying camera in 5 seconds!"]
+photo = ["[[user]] eye spy with my little eye...", "[[user]] something fishy is going on here"]
+video = ["I observed this, [[user]]", "Enjoy your film [[user]]"]
+empty = ["Hi [[user]]! Use #snap to get a photo or #rec to get a video", "[[user]] is this the real life? Is this just fantasy? Caught in a landslide, No escape from reality.", "[[user]] it gets lonely out here when nobody tweets me...", "[[user]] try #snap to see what I see", "[[user]] use #rec to get award winning movie"]
+

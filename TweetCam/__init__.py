@@ -48,7 +48,7 @@ class TweetCam():
 
 		self.logging.info('Recording video')
 		self.camera.start_recording(raw_file)
-		time.sleep(5)
+		time.sleep(15)
 
 		self.logging.info('Stopping recording')
 		self.camera.stop_recording()
